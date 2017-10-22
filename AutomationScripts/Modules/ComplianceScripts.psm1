@@ -5,6 +5,7 @@
 # Contants
 
 $defaultRequiredTags = "creator", "costallocation", "department"
+$defaultAllowedRegions = "westeurope", "northeurope", "global"
 
 # Private functions
 
@@ -61,6 +62,40 @@ function Test-All {
     }
 }
 
+function IsPremiumDisk {
+	Param($disk)
+	$isPremiumDisk = $disk.ManagedDisk -ne $null -and $disk.ManagedDisk.StorageAccountType -eq [Microsoft.Azure.Management.Compute.Models.StorageAccountTypes]::PremiumLRS
+	if(!$isPremiumDisk -and $disk.Vhd -ne $null){
+		$isPremiumDisk = (Get-AzureRmStorageAccount | Where {$_.Sku.Tier -eq [Microsoft.Azure.Management.Storage.Models.SkuTier]::Premium -and ([System.Uri]$_.PrimaryEndpoints.Blob).Host -eq ([System.Uri]$disk.Vhd.Uri).Host}).Count -eq 1
+	}
+	return $isPremiumDisk
+}
+
+function IsPremiumOsDisk {
+	Param([Microsoft.Azure.Management.Compute.Models.OsDisk]$osDisk)
+	return IsPremiumDisk -disk $osDisk
+}
+
+function ArePremiumDataDisks {
+	Param([System.Collections.Generic.IList[Microsoft.Azure.Management.Compute.Models.DataDisk]]$dataDisks)
+
+	$arePremiumDisk = $true
+
+	foreach($disk in $dataDisks) {
+		$arePremiumDisk = IsPremiumDisk -disk $disk
+		if(!$arePremiumDisk){
+			break
+		}
+	}
+	return $arePremiumDisk
+}
+
+function IsPremiumStorageProfile {
+	Param([Microsoft.Azure.Management.Compute.Models.StorageProfile]$storageProfile)
+	
+	return ((IsPremiumOsDisk $storageProfile.OsDisk) -and (ArePremiumDataDisks $storageProfile.DataDisks))
+}
+
 # Exported Functions
 
 function Get-UserAssignement {
@@ -81,24 +116,16 @@ function Get-OutdatedResources {
 
 }
 
-function Get-ResourcesInWrongRegion {
+function Get-ResourcesInWrongRegion ($allowedRegions = $defaultAllowedRegions){
 
-	Get-AzureRmResource | where Location -NotIn @("westeurope", "northeurope", "global") | Select -Property Name, Location, ResourceType, ResourceGroupName
+	$allowedRegions = @($allowedRegions)
+
+	Get-AzureRmResource | where Location -NotIn $allowedRegions | Select -Property Name, Location, ResourceType, ResourceGroupName
  
 }
 
-function Get-ResourceGroupsWithoutTags {
-    [CmdletBinding()]
-	param($requiredTags)
-
-	if($requiredTags -eq $null){
-		$requiredTags = $defaultRequiredTags
-	}
-	else{
-		$requiredTags = @($requiredTags)
-	}
-
-	Write-Verbose $requiredTags
+function Get-ResourceGroupsWithoutTags ($requiredTags = $defaultRequiredTags) {
+	$requiredTags = @($requiredTags)
 
     $groupsWithTags = Get-AzureRmResourceGroup | Where Tags -ne $null | Select -ExpandProperty Tags -Property ResourceId
 
@@ -110,5 +137,11 @@ function Get-ResourceGroupsWithoutTags {
 
 	# non compliant resource groups
 	Get-AzureRmResourceGroup | Where ResourceId -NotIn $compliantResourceGroupIds | Select ResourceGroupName, ResourceId
+}
+
+function Get-VMsWithoutSLA {
+
+	# This method might need improving, as being part of an Availability set is not enough. You need at least two machnies in the same AS
+	Get-AzureRmVM | Where { ($_.AvailabilitySetReference -eq $null) -and !(IsPremiumStorageProfile -storageProfile $_.StorageProfile) }  | select Name, Location, ResourceGroupName
 }
 

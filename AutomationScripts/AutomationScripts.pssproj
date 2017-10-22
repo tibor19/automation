@@ -26,10 +26,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ComplianceScripts.psd1" />
-    <Compile Include="ComplianceScripts.psm1" />
+    <Compile Include="Modules\ComplianceScripts.psd1" />
+    <Compile Include="Modules\ComplianceScripts.psm1" />
     <Compile Include="List-Roles.ps1" />
     <Compile Include="Run-Verifications.ps1" />
+    <Compile Include="Scripts\Check-Comlpiance.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Modules\" />
+    <Folder Include="Scripts\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
