@@ -34,16 +34,19 @@ Write-Warning $context
 $scripts = Get-Module ComplianceScripts | Select -ExpandProperty ExportedFunctions | Select -ExpandProperty Keys
 
 foreach($script in $scripts){
-	Write-Warning "Running script" $script
+	Write-Warning "Running script $script"
 
 	$result = &"$script" 
-		
+	
+	Write-Warning "$script has this $($result.Count) result: $result"
+	
 	if(($result -ne $null) -and (@($result).Count -gt 0)){
 		#$result | Export-Csv -NoTypeInformation -Path $perScriptPath
 		#$result | Export-Csv -NoTypeInformation -Path $perSubscriptionPath
+		
 		Write-Output $result
 	}
 	else{
-		Write-Warning "Nothing to report on $script for " $context.Subscription.Name
+		Write-Warning "Nothing to report on $script for $($context.Subscription.Name)"
 	}
 }
