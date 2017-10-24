@@ -36,6 +36,9 @@
     <Folder Include="Modules\" />
     <Folder Include="Scripts\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Modules\ComplianceScripts-Automation.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
 </Project>
