@@ -311,4 +311,23 @@ $vms | Select Name
 
 Get-AzureRmStorageAccount | Select -ExpandProperty Sku | Select -ExpandProperty Name | gm
 
-IsP
+$values = 'a', 'b'
+
+function Test-StringsArray{
+	param(
+		[string[]]$strings = $values
+	)
+
+	if($strings -eq $null){
+		Write-Output "No data"
+	}
+	Write-Output $strings.Length
+
+	foreach($string in $strings){
+		Write-Output $string
+	}
+}
+
+Test-StringsArray 
+Test-StringsArray Tibi
+Test-StringsArray Tibi, Nicoleta

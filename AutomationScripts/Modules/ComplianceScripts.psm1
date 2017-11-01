@@ -116,16 +116,13 @@ function Get-OutdatedResources {
 
 }
 
-function Get-ResourcesInWrongRegion ($allowedRegions = $defaultAllowedRegions){
-
-	$allowedRegions = @($allowedRegions)
+function Get-ResourcesInWrongRegion ([string[]]$allowedRegions = $defaultAllowedRegions){
 
 	Get-AzureRmResource | where Location -NotIn $allowedRegions | Select -Property Name, Location, ResourceType, ResourceGroupName
  
 }
 
-function Get-ResourceGroupsWithoutTags ($requiredTags = $defaultRequiredTags) {
-	$requiredTags = @($requiredTags)
+function Get-ResourceGroupsWithoutTags ([string[]]$requiredTags = $defaultRequiredTags) {
 
     $groupsWithTags = Get-AzureRmResourceGroup | Where Tags -ne $null | Select -ExpandProperty Tags -Property ResourceId
 

@@ -2,7 +2,8 @@
 # Check_Comlpiance.ps1
 #
 
-$comlianceScriptsPrefix = "Get-"
+$complianceScriptsModule = "ComplianceScripts"
+$complianceScriptsVerb = "Get"
 $storageAccountName = "automationscripts201710"
 $storageAccountResourceGroup = "automation-rg"
 $storageAccountContainerName = "output"
@@ -32,13 +33,13 @@ catch {
     }
 }
 
-Import-Module ComplianceScripts
+Import-Module $complianceScriptsModule
 
 $context = Get-AzureRmContext
 Write-Verbose 'Context:' 
 Write-Verbose ($context | Format-List | Out-String)
 
-$scripts = Get-Module ComplianceScripts | Select -ExpandProperty ExportedFunctions | Select -ExpandProperty Keys | Where {$_.StartsWith($comlianceScriptsPrefix)}
+$scripts = Get-Command -Module $complianceScriptsModule -Verb $complianceScriptsVerb | Select -ExpandProperty Name
 
 Write-Verbose 'Scripts to run:' 
 Write-Verbose ($scripts | Format-List | Out-String)
@@ -48,7 +49,7 @@ New-AzureStorageContainer -Name $storageAccountContainerName -ErrorAction Ignore
 
 foreach($script in $scripts){
 
-	$scriptName = $script.Substring($comlianceScriptsPrefix.Length)
+	$scriptName = (Get-Command -Name $script -Module $complianceScriptsModule).Noun
 	$outputFile = $scriptName + ".csv"
 
 	Write-Verbose "Running script $scriptName"

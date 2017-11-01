@@ -29,6 +29,7 @@
     <Compile Include="Modules\ComplianceScripts.psd1" />
     <Compile Include="Modules\ComplianceScripts.psm1" />
     <Compile Include="List-Roles.ps1" />
+    <Compile Include="Check-Subscriptions.ps1" />
     <Compile Include="Run-Verifications.ps1" />
     <Compile Include="Scripts\Check-Comlpiance.ps1" />
   </ItemGroup>
